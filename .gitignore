@@ -1,0 +1,43 @@
+# Icarus Verilog & Simülasyon Çıktıları
+*.vvp
+*.vcd
+*.out
+*.lxt
+*.lxt2
+*.fst
+*.gtkw
+
+# ModelSim / QuestaSim
+work/
+vsim.wlf
+transcript
+*.mpf
+*.mti
+*.vstf
+*.cr.mti
+*.wlf
+
+# Xilinx Vivado
+*.jou
+*.log
+*.str
+*.xpr
+*.cache/
+*.hw/
+*.ip_user_files/
+*.runs/
+*.sim/
+*.srcs/
+*.gen/
+.Xil/
+vivado*.backup.jou
+vivado*.backup.log
+
+# İşletim Sistemi ve Editör Geçici Dosyaları
+.DS_Store
+Thumbs.db
+*~
+*.swp
+*.swo
+.vscode/
+.idea/
