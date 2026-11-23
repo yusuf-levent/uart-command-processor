@@ -17,11 +17,11 @@ module flight_fsm (
     reg [2:0] state;
     reg [2:0] next_state;
 
-    // Durum register'ı (senkron aktif-yüksek reset)
+    // Durum register'ı (senkron aktif-yüksek reset; sadece cmd_exec == 1 iken geçiş yapar)
     always @(posedge clk) begin
         if (rst) begin
             state <= DISARMED;
-        end else begin
+        end else if (cmd_exec) begin
             state <= next_state;
         end
     end
@@ -81,11 +81,6 @@ module flight_fsm (
                 next_state = DISARMED;
             end
         endcase
-
-        // Durum değişimi sadece cmd_exec == 1 iken gerçekleşir
-        if (!cmd_exec) begin
-            next_state = state;
-        end
     end
 
 endmodule

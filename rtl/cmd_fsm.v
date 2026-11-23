@@ -50,11 +50,15 @@ module cmd_fsm (
         end
     end
 
-    // Sonraki durum ve Moore çıkış mantığı
+    // Moore çıkışları (sadece mevcut state'e bağlı)
+    always @(*) begin
+        cmd_exec = (state == EXECUTE);
+        tx_start = (state == SEND);
+    end
+
+    // Sonraki durum mantığı
     always @(*) begin
         next_state = state;
-        cmd_exec   = 1'b0;
-        tx_start   = 1'b0;
 
         case (state)
             IDLE: begin
@@ -75,7 +79,6 @@ module cmd_fsm (
             end
 
             EXECUTE: begin
-                cmd_exec = 1'b1;
                 if (flight_ok) begin
                     next_state = RESPONSE;
                 end else begin
@@ -96,7 +99,6 @@ module cmd_fsm (
             end
 
             SEND: begin
-                tx_start   = 1'b1;
                 next_state = IDLE;
             end
 
