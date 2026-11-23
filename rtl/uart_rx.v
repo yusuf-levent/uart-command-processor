@@ -1,3 +1,4 @@
+
 module uart_rx (
     input wire clk,
     input wire rst,
@@ -27,6 +28,7 @@ module uart_rx (
     reg [3:0] tick_count;
     reg [2:0] bit_index;
     reg parity_err;
+    reg rx_prev;
 
 
     // =====================================
@@ -35,7 +37,7 @@ module uart_rx (
 
     always @(posedge clk) begin
 
-        // Active-high synchronous reset
+        
         if (rst == 1'b1) begin
 
             state      <= IDLE;
@@ -43,10 +45,14 @@ module uart_rx (
             bit_index  <= 3'd0;
             rx_data    <= 8'd0;
             parity_err <= 1'b0;
+            rx_prev    <= 1'b1;
 
         end
 
         else begin
+
+           
+            rx_prev <= rx;
 
             case (state)
 
@@ -58,7 +64,7 @@ module uart_rx (
 
                     tick_count <= 4'd0;
 
-                    if (rx == 1'b0) begin
+                    if (rx_prev == 1'b1 && rx == 1'b0) begin
                         state <= START;
                     end
 
@@ -309,3 +315,4 @@ module uart_rx (
     end
 
 endmodule
+
