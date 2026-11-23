@@ -152,18 +152,18 @@ Verinin bir tür "imzası". Gönderen veriden hesaplayıp pakete ekler, alıcı 
 ## Mimari
 
 ```
-Gönderen: komut → [tx_packetizer + CRC] → [tx_fifo] → [uart_tx] ──►
-Alıcı:    ──► [uart_rx] → [rx_fifo] → [rx_parser + CRC kontrol] → cmd_fsm
+Gönderen: [cmd_fsm] → [tx_packetizer + crc8] → [u_tx_fifo (fifo)] → [uart_tx] ──►
+Alıcı:    ──► [uart_rx] → [u_rx_fifo (fifo)] → [rx_parser + crc8] → [cmd_fsm] → [flight_fsm]
 ```
 
-11'deki uart_tx, uart_rx ve komutlar aynen kalıyor, etraflarına katman ekleniyor.
+Faz 1'deki `baud_gen`, `uart_tx`, `uart_rx` ve `flight_fsm` aynen kalıyor, etraflarına katman ekleniyor.
 
-## Faz 2'de kim ne yapar (11'deki rollerin devamı)
+## Faz 2'de kim ne yapar (Seçenek A — tek ortak FIFO)
 
-- **Kişi 2:** tx_fifo + tx_packetizer (paketi kurar, CRC'yi ekler)
-- **Kişi 3:** rx_fifo + rx_parser (paket ayrıştırma FSM'i)
-- **Kişi 1:** crc modülü, cmd_fsm'in paket sürümü, top module
-- **Kişi 4:** Yeni testler (bit bozma, kısa paket, yanlış uzunluk, arka arkaya paketler)
+- **Kişi 1 (Lider):** `rtl/crc8.v`, `rtl/cmd_fsm.v` (`pkt_len == 1` kontrolü), `rtl/uart_top.v` (Faz 2 entegrasyonu)
+- **Kişi 2:** `rtl/fifo.v` (tek ortak 8×8 FIFO — hem RX hem TX için kullanılır) + `rtl/tx_packetizer.v` (paketi kurar, CRC'yi ekler)
+- **Kişi 3:** `rtl/rx_parser.v` (paket ayrıştırma, CRC doğrulama, uzunluk ve timeout kontrolü FSM'i)
+- **Kişi 4:** `tb/tb_fifo.v` + Faz 2 `tb/tb_uart_top.v` (FIFO testleri, CRC bit bozma, kısa paket, yanlış uzunluk, arka arkaya paketler, orta yerde reset)
 
 ## Faz 2 zaman çizelgesi
 
@@ -171,9 +171,9 @@ Süre olarak FIFO yaklaşık 1 hafta, parser FSM 1-1.5 hafta, CRC 3-4 gün, yani
 
 | Hafta | Ne |
 |---|---|
-| 6 (12-18 Kas) | rx_fifo ve tx_fifo, FIFO testleri (doluluk, boşluk, arka arkaya baytlar) |
-| 7 (19-25 Kas) | Paket formatı, tx_packetizer ve rx_parser FSM'i |
-| 8 (26 Kas-2 Ara) | CRC modülü, entegrasyon, bit bozma ve kısa paket testleri |
+| 6 (12-18 Kas) | `crc8.v` ve ortak `fifo.v`, FIFO testleri (`tb_fifo.v`: doluluk, boşluk, overflow/underflow) |
+| 7 (19-25 Kas) | Paket formatı, `tx_packetizer.v` ve `rx_parser.v` FSM'leri |
+| 8 (26 Kas-2 Ara) | `cmd_fsm` + `uart_top` Faz 2 entegrasyonu, bit bozma / kısa paket / arka arkaya paket testleri |
 
 ## Öneri
 
