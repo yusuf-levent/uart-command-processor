@@ -1,8 +1,9 @@
-// Kişi 1 - Komut Çözümleyici FSM (Moore)
+// Kişi 1 - Komut Çözümleyici FSM (Moore, Faz 2 pkt_len destekli)
 module cmd_fsm (
     input  wire       clk,
     input  wire       rst,
     input  wire [7:0] rx_data,
+    input  wire [7:0] pkt_len,
     input  wire       rx_valid,
     input  wire       rx_err,
     input  wire       tx_busy,
@@ -24,6 +25,7 @@ module cmd_fsm (
     reg [2:0] state;
     reg [2:0] next_state;
     reg [7:0] cmd_reg;
+    reg [7:0] len_reg;
     reg [7:0] resp_reg;
 
     assign cmd_out = cmd_reg;
@@ -34,12 +36,14 @@ module cmd_fsm (
         if (rst) begin
             state    <= IDLE;
             cmd_reg  <= 8'h00;
+            len_reg  <= 8'h00;
             resp_reg <= 8'h00;
         end else begin
             state <= next_state;
 
             if (state == IDLE && !rx_err && rx_valid) begin
                 cmd_reg <= rx_data;
+                len_reg <= pkt_len;
             end
 
             if (state == EXECUTE && flight_ok) begin
@@ -72,10 +76,14 @@ module cmd_fsm (
             end
 
             DECODER: begin
-                case (cmd_reg)
-                    "A", "D", "T", "L", "F", "R": next_state = EXECUTE;
-                    default:                      next_state = ERROR;
-                endcase
+                if (len_reg == 8'd1) begin
+                    case (cmd_reg)
+                        "A", "D", "T", "L", "F", "R": next_state = EXECUTE;
+                        default:                      next_state = ERROR;
+                    endcase
+                end else begin
+                    next_state = ERROR;
+                end
             end
 
             EXECUTE: begin

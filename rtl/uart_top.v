@@ -52,6 +52,7 @@ module uart_top #(
         .clk       (clk),
         .rst       (rst),
         .rx_data   (rx_data),
+        .pkt_len   (8'd1),     // Faz 2'de rx_parser.pkt_len bağlanacak
         .rx_valid  (rx_valid),
         .rx_err    (rx_err),
         .tx_busy   (tx_busy),
